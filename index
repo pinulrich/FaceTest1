@@ -1,0 +1,463 @@
+<!doctype html>
+<html>
+
+    <head>
+        <title>My experiment</title>
+        <!-- Load jQuery -->
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <!-- Load the jspsych library and plugins -->
+        <script src="scripts/jspsych.js"></script>
+        <script src="scripts/plugins/jspsych-text.js"></script>
+        <script src="scripts/plugins/jspsych-single-stim.js"></script>
+		<script src="scripts/plugins/jspsych-survey-text.js"></script>
+        <!-- Load the stylesheet -->
+        <link href="experiment.css" type="text/css" rel="stylesheet"></link>
+    </head>
+
+    <body>
+        <div id="jspsych_target"></div>
+    </body>
+
+    <script type="text/javascript">
+        // Settings
+		var credits_timing = 5000
+		var learn_time = 300
+		var post_trial = 100
+		var Spaceman = [32,13] // Remove values to prevent speeding through timed parts
+		
+		// Survey questions
+        var opening_questions = ["We would like to gather a small amount of information about you.<br />Could you please tell us your:<p></p><p>Age</p>",
+								"Sex",
+								"Home town",
+			];
+        var closing_questions = ["<p>Thank you for your participation.</p><p>If you are interested in contributing further to face recognition research, please offer some details so we can contact you.<br />Leave any boxes empty that you would rather not answer.</p><p>Name:</p>",
+								"Address",
+								"Contact email",
+								"Contact telephone number",
+			];
+		var other = ["Please add below any other information that you would like the researchers to know."];
+
+		
+		// Variables
+        var welcome = '<div id="instructions">\
+			<p><b>Welcome to this internet-based test of face recognition!</b></p>\
+			<p>We aim to collect data using this test to inform us about the range of face recognition abilities of the general public.</p>\
+			<p>The test normally takes under 15 minutes so please make sure you can complete the task in a suitable setting and undisturbed.  Please do not use the &#39Back&#39 button in your browser as this will exit the test.</p>\
+			<p>All personal details will strictly be kept secure and confidential. If you are willing to participate in this test, please press the &#39ENTER&#39 button when you are ready.</p></div>';
+		
+		var credits = ['<p><img src="img/bradimg/titlepage.jpg"></p>\
+			<p>Translated to JavaScript using jsPsych by Philip Ulrich</p></div>'];
+
+		var instructions_practise = '<div id="instructions">\
+			<p><img src="img/bradimg/inst_practice1.jpg"></p></div>';
+
+		var stimuli_learn_prac = ['<p><img src="img/bradimg/textP.jpg"></p><img src="img/bradimg/bart_left.jpg">',
+					              '<p><img src="img/bradimg/textP.jpg"></p><img src="img/bradimg/bart_straight.jpg">',
+								  '<p><img src="img/bradimg/textP.jpg"></p><img src="img/bradimg/bart_right.jpg">'
+	        ];
+
+		var stimuli_test_prac = ['<p><img src="img/bradimg/inst_practice2.jpg"></p><img src="img/bradimg/pract_left.jpg"><p><img src="img/bradimg/numbers.png"></p>',
+								 '<p><img src="img/bradimg/inst_practice2.jpg"></p><img src="img/bradimg/pract_right.jpg"><p><img src="img/bradimg/numbers.png"></p>',
+								 '<p><img src="img/bradimg/inst_practice2.jpg"></p><img src="img/bradimg/pract_straight.jpg"><p><img src="img/bradimg/numbers.png"></p>',
+			];
+
+		var corr_resp_prac = ["97", "98", "98"];
+
+		var restart = 0
+
+        var practise_progression = '<div id="instructions">\
+			<p><img src="img/bradimg/inst_memorize1.jpg"></p></div>';
+
+        var stimuli_learn_intro1 = ['<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Bob_left_study.jpg"></p>',
+								    '<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Bob_frontal_study.jpg"></p>',
+		                            '<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Bob_right_study.jpg"></p>',
+			];
+        var stimuli_test_intro1 = ['<p><img src="img/bradimg/textT_which_face_did_you.jpg"></p><p><img src="img/bradimg/B1_Identical_Left.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+								    '<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/B2_Identical_Frontal.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+		                            '<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/B3_Identical_Right.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+			];
+        var corr_resp_intro1 = ["98", "99", "99"];
+
+        var instructions_intro = '<div id="instructions">\
+			<p><img src="img/bradimg/inst_memorize2.jpg"></p></div>';		
+
+		var stimuli_learn_intro2 = ['<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Dan_Left_Study.jpg"></p>','<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Dan_frontal_study.jpg"></p>','<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Dan_Right_Frontal.jpg"></p>',];
+		var stimuli_test_intro2 = ['<p><img src="img/bradimg/textT_which_face_did_you.jpg"></p><p><img src="img/bradimg/D1_Identical_Left.jpg"></p><p><img src="img/bradimg/numbers.png"></p>','<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/D2_Identical_Frontal.jpg"></p><p><img src="img/bradimg/numbers.png"></p>','<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/D3_Identical_Right.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',];
+		var corr_resp_intro2 = ["98", "99", "99"];
+
+		var stimuli_learn_intro3 = ['<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Jim_left.jpg"></p>','<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Jim_front.jpg"></p>','<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Jim_right.jpg"></p>',];
+		var stimuli_test_intro3 = ['<p><img src="img/bradimg/textT_which_face_did_you.jpg"></p><p><img src="img/bradimg/J_1_Iden_L.jpg"></p><p><img src="img/bradimg/numbers.png"></p>','<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/J_2_Iden_Front.jpg"></p><p><img src="img/bradimg/numbers.png"></p>','<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/J_3_Iden_R.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',];
+		var corr_resp_intro3 = ["99", "99", "97"];
+
+		var stimuli_learn_intro4 = ['<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Matt_left_cropped.jpg"></p>','<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Matt_front.jpg"></p>','<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Matt_right_cropped.jpg"></p>',];
+		var stimuli_test_intro4 = ['<p><img src="img/bradimg/textT_which_face_did_you.jpg"></p><p><img src="img/bradimg/M_1_Iden_L.jpg"></p><p><img src="img/bradimg/numbers.png"></p>','<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/M_2_Iden_Front.jpg"></p><p><img src="img/bradimg/numbers.png"></p>','<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/M_3_Iden_R.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',];
+		var corr_resp_intro4 = ["98", "99", "97"];
+
+		var stimuli_learn_intro5 = ['<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Nate_left_cropped.jpg"></p>','<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Nate_front_cropped.jpg"></p>','<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Nate_right_cropped.jpg"></p>',];
+		var stimuli_test_intro5 = ['<p><img src="img/bradimg/textT_which_face_did_you.jpg"></p><p><img src="img/bradimg/N_1_Iden_L.jpg"></p><p><img src="img/bradimg/numbers.png"></p>','<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/N_2_Iden_Front.jpg"></p><p><img src="img/bradimg/numbers.png"></p>','<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/N_3_Iden_R.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',];
+		var corr_resp_intro5 = ["99", "97", "99"];
+
+		var stimuli_learn_intro6 = ['<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Zack_Left_cropped.jpg"></p>','<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Zack_Front_cropped.jpg"></p>','<p><img src="img/bradimg/text_memorize.jpg"></p><p><img src="img/bradimg/Zack_Right_Cropped.jpg"></p>',];
+		var stimuli_test_intro6 = ['<p><img src="img/bradimg/textT_which_face_did_you.jpg"></p><p><img src="img/bradimg/Z_1_Iden_L.jpg"></p><p><img src="img/bradimg/numbers.png"></p>','<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/Z_2_Iden_Front.jpg"></p><p><img src="img/bradimg/numbers.png"></p>','<p><img src="img/bradimg/textT_which_face_did_you.jpg"><p><img src="img/bradimg/Z_3_Iden_R.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',];
+		var corr_resp_intro6 = ["97", "99", "97"];
+
+		var instructions_review = '<div id="instructions">\
+			<p><img src="img/bradimg/inst_review1.jpg"></p></div>';		
+
+		var stimuli_review = ['<p><img src="img/bradimg/text_review2.jpg"></p><p><img src="img/bradimg/AA_Review_image.jpg"></p>'];
+			
+		var instructions_nonoise = '<div id="instructions">\
+			<p><img src="img/bradimg/inst_review2.jpg"></p></div>';		
+			
+		var stimuli_nonoise = ['<p><img src="img/bradimg/text_which_face_6.jpg"></p><p><img src="img/bradimg/M_5_Front_Halflit.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/N_8_13_R_Pro_dark.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/Z_6_23_Pro_L.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/D5_Halflit_Frontal.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/B7_Bottomlit_Frontal.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/J_6_23_L_Pro.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/D7_Bottomlit_Frontal.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/Z_5_Front_Half.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/M_6_23_L_Pro.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/J_7_Bottom_Lit.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/N_4_23_R_Pro.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/M_8_13_R_Pro_dark.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/J_5_Front_Halflit.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/N_7_Front_Bot.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/Z_4_23_Pro_R.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/D8_13_Profile_R.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/M_7_Front_Bot.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/B4_23_pro_ri.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/D6_23_Profile_L.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/N_5_Front_Half.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/B6_23_pro_L.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/Z_8_13_Pro_R_dark.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/J_4_23_R_Pro.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/B8_13_pro_R_HS.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/M_4_23_R_Pro.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/J_8_13_r_pro_dark.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/Z_7_Front_Bot.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/D4_23_profile_R.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/N_6_23_L_Pro.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							   '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/B5_halflit_frontal.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+		];
+		var corr_resp_nonoise = ["97", "98", "97", "99", "99", "98", "97", "99", "98", "99", "98", "99", "98", "97", "98", "98", "98", "98", "97", "99", "97", "98", "98", "97", "99", "97", "98", "97", "97", "99"];
+
+		var stimuli_noise = ['<p><img src="img/bradimg/text_which_face_6.jpg"></p><p><img src="img/bradimg/Z_12_Front_Noisy.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/M_11_23_N_R_Pro.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/D10_Noisy_13_Profile_L.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/J_12_Frontal_HS.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/J_11_23_pro_R.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/N_9_Front_LS.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/B12_Noisy_frontal_HS.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/M_12_Front_N_HS.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/D12_Noisy_Frontal_HS.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/Z_11_23_Pro_R.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/N_10_13_L_Pro_dark.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/B9_Noisy_frontal_LS.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/M_9_Front_N_LS.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/J_9_N_Frontal_50.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/N_12_Front_Noisy.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/B10_Noisy_13_pro_L.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/N_11_23_R_Pro.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/J_10_13_pro_l.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/Z_9_Front_Noisy.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/D9_Noisy_Frontal_LS.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/M_10_N_13_L_Pro_D.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/Z_10_13_Pro_L.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/B11_Noise_23_pro_R.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+							 '<p><img src="img/bradimg/text_which_face_6.jpg"><p><img src="img/bradimg/D11_Noisy_23_profile_R.jpg"></p><p><img src="img/bradimg/numbers.png"></p>',
+		];
+		var corr_resp_noise = ["98", "99", "97", "97", "99", "97", "98", "97", "98", "98", "98", "98", "97", "98", "97", "98", "99", "97", "99", "97", "97", "97", "97", "99"];
+
+        var thanks = ['<p><img src="img/bradimg/thanks.jpg"></p><p>Press ENTER to see and download results.</p></div>'];
+
+        // Define experiment blocks
+
+		//Practise Bart Blocks--------------------------------------------------------------------------------------------
+		var welcome_block = {
+                type: "text",
+                text: [welcome],
+				cont_key: 13,
+                timing_post_trial: post_trial
+            };
+
+		//Opening questions Blocks--------------------------------------------------------------------------------------------
+		var opening_questions_block = {
+            type: 'survey-text',
+            questions: [opening_questions],
+        };
+
+		//Credits Blocks---------------------------------------------------------------------------------------------------------------
+        var credits_block = {
+                type: "single-stim",
+                stimuli: credits,
+				choices: Spaceman,
+				timing_response: credits_timing,
+				continue_after_response: true,
+				timing_post_trial: post_trial,
+				is_html: true,
+            };
+
+		//Practise Bart Blocks--------------------------------------------------------------------------------------------
+		var instructions_practise_block = {
+                type: "text",
+                text: [instructions_practise],
+				cont_key: 32,
+                timing_post_trial: post_trial
+            };
+
+		var learn_practise_block = {
+                type: "single-stim",
+                stimuli: stimuli_learn_prac,
+                choices: [],
+				timing_response: learn_time,
+				timing_post_trial: post_trial,
+				is_html: true,
+            };
+
+		var test_practise_block = {
+                type: "single-stim",
+                stimuli: stimuli_test_prac,
+                choices: [97, 98, 99],
+                timing_post_trial: post_trial,
+				data: corr_resp_prac,
+				is_html: true,
+            };
+
+		var restart = 0
+
+		var practise_progression_block = {
+                type: "text",
+                text: [practise_progression],
+				cont_key: 32,
+                timing_post_trial: post_trial
+            };
+
+		//Introduction Blocks---------------------------------------------------------------------------------------------
+		var learn_intro1_block = {
+                type: "single-stim",
+                stimuli: stimuli_learn_intro1,
+                choices: [],
+				timing_response: learn_time,
+				timing_post_trial: post_trial,
+				is_html: true,
+            };
+
+		var test_intro1_block = {
+                type: "single-stim",
+                stimuli: stimuli_test_intro1,
+                choices: [97, 98, 99],
+                timing_post_trial: post_trial,
+				data: corr_resp_intro1,
+				is_html: true,
+            };
+
+		var instructions_intro_block = {
+                type: "text",
+                text: [instructions_intro],
+				cont_key: 32,
+                timing_post_trial: post_trial
+            };
+        				
+
+		var learn_intro2_block = {
+                type: "single-stim",
+                stimuli: stimuli_learn_intro2,
+                choices: [],
+				timing_response: learn_time,
+				timing_post_trial: post_trial,
+				is_html: true,
+            };
+
+		var test_intro2_block = {
+                type: "single-stim",
+                stimuli: stimuli_test_intro2,
+                choices: [97, 98, 99],
+                timing_post_trial: post_trial,
+				data: corr_resp_intro2,
+				is_html: true,
+            };
+
+		var learn_intro3_block = {
+                type: "single-stim",
+                stimuli: stimuli_learn_intro3,
+                choices: [],
+				timing_response: learn_time,
+				timing_post_trial: post_trial,
+				is_html: true,
+            };
+
+		var test_intro3_block = {
+                type: "single-stim",
+                stimuli: stimuli_test_intro3,
+                choices: [97, 98, 99],
+                timing_post_trial: post_trial,
+				data: corr_resp_intro3,
+				is_html: true,
+            };
+
+		var learn_intro4_block = {
+                type: "single-stim",
+                stimuli: stimuli_learn_intro4,
+                choices: [],
+				timing_response: learn_time,
+				timing_post_trial: post_trial,
+				is_html: true,
+            };
+
+		var test_intro4_block = {
+                type: "single-stim",
+                stimuli: stimuli_test_intro4,
+                choices: [97, 98, 99],
+                timing_post_trial: post_trial,
+				data: corr_resp_intro4,
+				is_html: true,
+            };
+
+		var learn_intro5_block = {
+                type: "single-stim",
+                stimuli: stimuli_learn_intro5,
+                choices: [],
+				timing_response: learn_time,
+				timing_post_trial: post_trial,
+				is_html: true,
+            };
+
+		var test_intro5_block = {
+                type: "single-stim",
+                stimuli: stimuli_test_intro5,
+                choices: [97, 98, 99],
+                timing_post_trial: post_trial,
+				data: corr_resp_intro5,
+				is_html: true,
+            };
+
+		var learn_intro6_block = {
+                type: "single-stim",
+                stimuli: stimuli_learn_intro6,
+                choices: [],
+				timing_response: learn_time,
+				timing_post_trial: post_trial,
+				is_html: true,
+            };
+
+		var test_intro6_block = {
+                type: "single-stim",
+                stimuli: stimuli_test_intro6,
+                choices: [97, 98, 99],
+                timing_post_trial: post_trial,
+				data: corr_resp_intro6,
+				is_html: true,
+            };
+
+		//Review faces Blocks--------------------------------------------------------------------------------------------
+		var instructions_review_block = {
+                type: "text",
+                text: [instructions_review],
+				cont_key: 32,
+                timing_post_trial: post_trial,
+            };
+
+        var stimuli_review_block = {
+                type: "single-stim",
+                stimuli: stimuli_review,
+				choices: Spaceman,
+				timing_response: 20000,
+				continue_after_response: true,
+				timing_post_trial: post_trial,
+				is_html: true,
+            };
+
+		var instructions_nonoise_block = {
+                type: "text",
+                text: [instructions_nonoise],
+				cont_key: 32,
+                timing_post_trial: post_trial,
+            };
+
+		//NoNoise Blocks--------------------------------------------------------------------------------------------------
+		var stimuli_nonoise_block = {
+                type: "single-stim",
+                stimuli: stimuli_nonoise,
+                choices: [97, 98, 99],
+                timing_post_trial: post_trial,
+				data: corr_resp_nonoise,
+				is_html: true,
+            };
+
+		//Noise Blocks------------------------------------------------------------------------------------------------------
+		var stimuli_noise_block = {
+                type: "single-stim",
+                stimuli: stimuli_noise,
+                choices: [97, 98, 99],
+                timing_post_trial: post_trial,
+				data: corr_resp_noise,
+				is_html: true,
+            };
+
+		//Closing questions Blocks----------------------------------------------------------------------------------------
+		var closing_questions_block = {
+            type: 'survey-text',
+            questions: [closing_questions, other],
+        };
+
+		//Thanks Blocks---------------------------------------------------------------------------------------------------
+        var thanks_block = {
+                type: "single-stim",
+                stimuli: thanks,
+				choices: [13],
+				timing_response: -1,
+				continue_after_response: true,
+				timing_post_trial: post_trial,
+				is_html: true,
+            }; 
+
+			//Initiation
+        jsPsych.init({
+            display_element: $('#jspsych_target'),
+            experiment_structure: [welcome_block,
+								   opening_questions_block,
+								   credits_block,
+								   instructions_practise_block, 
+								   learn_practise_block, 
+								   test_practise_block, 
+								   //restart,
+								   practise_progression_block, 
+								   learn_intro1_block,
+								   test_intro1_block,
+								   instructions_intro_block,
+								   learn_intro2_block,
+								   test_intro2_block,
+								   instructions_intro_block,
+								   learn_intro3_block,
+								   test_intro3_block,
+								   instructions_intro_block,
+								   learn_intro4_block,
+								   test_intro4_block,
+								   instructions_intro_block,
+								   learn_intro5_block,
+								   test_intro5_block,
+								   instructions_intro_block,
+								   learn_intro6_block,
+								   test_intro6_block,
+								   instructions_review_block,
+								   stimuli_review_block,
+								   instructions_nonoise_block,
+								   stimuli_nonoise_block,
+								   stimuli_review_block,
+								   stimuli_noise_block,
+								   closing_questions_block,
+								   thanks_block,
+			],
+            on_finish: function(data) {
+                $("#jspsych_target").append($('<pre>', {
+                    //html: jsPsych.dataAsCSV(),
+					text: JSON.stringify(data, undefined, 2),
+
+                }));
+                
+                jsPsych.saveCSVdata("data.csv");
+            }
+        });
+    </script>
+</html>
